@@ -10,9 +10,15 @@ module TrelloPipes
 		end
 
 		def produce(end_list_name)
-			cards = []
-			cards = @trello_board.lists[0].cards if @trello_board.lists.length > 0
+			cards = all_board_cards(@trello_board.lists)
 			@successor.push(cards)
+		end
+
+		private
+		def all_board_cards(lists)
+			return [] if lists.empty?
+			head, *tail = lists
+			return head.cards + all_board_cards(tail)
 		end
 	end
 end
@@ -56,6 +62,46 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end
+
+	def test_that_multiple_cards_are_produced_when_board_has_cards_across_multiple_lists_after_and_inc_referenced_list
+		list_name = "a list #{SecureRandom.uuid}"
+		card1 = FakeCard.new
+		card2 = FakeCard.new
+		card3 = FakeCard.new
+		mock_successor = MockSuccessor.new
+		board_with_multiple_lists = FakeBoard.new
+		referenced_list = FakeList.new(list_name)
+		referenced_list
+			.add(card1)
+		list_after = FakeList.new('list after')
+			.add(card2)
+			.add(card3)
+		board_with_multiple_lists.add(referenced_list)
+		board_with_multiple_lists.add(list_after)
+		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
+		producer.produce(list_name)
+		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
+	end
+
+	# def test_that_cards_in_earlier_lists_are_not_included
+	# 	list_name = "a list #{SecureRandom.uuid}"
+	# 	card1 = FakeCard.new
+	# 	card2 = FakeCard.new
+	# 	card3 = FakeCard.new
+	# 	mock_successor = MockSuccessor.new
+	# 	board_with_multiple_lists = FakeBoard.new
+	# 	earlier_list = FakeList.new('')
+	# 		.add(card1)
+	# 		.add(card2)
+	# 	referenced_list = FakeList.new(list_name)
+	# 	referenced_list
+	# 		.add(card3)
+	# 	board_with_multiple_lists.add(earlier_list)
+	# 	board_with_multiple_lists.add(referenced_list)
+	# 	producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
+	# 	producer.produce(list_name)
+	# 	expect(mock_successor.pushed_cards).to eql([card3])
+	# end
 end
 
 class FakeCard
