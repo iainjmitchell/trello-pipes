@@ -1,19 +1,7 @@
 require 'test/unit'
 require 'rspec-expectations'
 require 'securerandom'
-
-module TrelloPipes
-	class CardContainsComplexityFilter
-		def initialize(successor)
-			@successor = successor
-		end
-
-		def push(cards)
-			@successor.push(cards)
-		end
-	end
-end
-
+require_relative '../../lib/filters/CardContainsComplexityFilter'
 
 class CardContainsComplexityFilterTests < Test::Unit::TestCase
 	include TrelloPipes
@@ -26,11 +14,20 @@ class CardContainsComplexityFilterTests < Test::Unit::TestCase
 	end
 
 	def test_one_card_with_complexity
+		complexity = rand(1..13)
 		mock_successor = MockSuccessor.new
-		card_with_complexity = FakeCard.new('(1) Hello')
+		card_with_complexity = FakeCard.new("(#{complexity}) Hello")
 		one_card_with_complexity = [card_with_complexity]
 		CardContainsComplexityFilter.new(mock_successor).push(one_card_with_complexity)
 		expect(mock_successor.pushed_cards).to eql(one_card_with_complexity)
+	end
+
+	def test_one_card_without_complexity
+		mock_successor = MockSuccessor.new
+		card_without_complexity = FakeCard.new('Hello')
+		one_card_without_complexity = [card_without_complexity]
+		CardContainsComplexityFilter.new(mock_successor).push(one_card_without_complexity)
+		expect(mock_successor.pushed_cards).to eql([])
 	end
 end
 
