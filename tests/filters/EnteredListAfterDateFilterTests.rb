@@ -3,7 +3,7 @@ require 'rspec-expectations'
 require 'date'
 
 module TrelloPipes
-	class CardEnteredListAfterDateFilter
+	class EnteredListAfterDateFilter
 		def initialize(successor, date)
 			@successor = successor
 		end
@@ -14,14 +14,14 @@ module TrelloPipes
 	end
 end
 
-class CardEnteredListAfterDateFilterTests < Test::Unit::TestCase
+class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 	include TrelloPipes
 
 	def test_no_cards_in_no_cards_out
 		mock_successor = MockSuccessor.new
 		no_cards = []
 		date = DateTime.now
-		CardEnteredListAfterDateFilter.new(mock_successor, date).push(no_cards)
+		EnteredListAfterDateFilter.new(mock_successor, date).push(no_cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
 end
