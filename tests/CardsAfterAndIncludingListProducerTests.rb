@@ -9,16 +9,23 @@ module TrelloPipes
 			@trello_board = trello_board
 		end
 
-		def produce(end_list_name)
-			cards = all_board_cards(@trello_board.lists)
+		def produce(list_name)
+			lists = get_lists_after_and_including(list_name)
+			cards = all_cards_from(lists)
 			@successor.push(cards)
 		end
 
 		private
-		def all_board_cards(lists)
+		def get_lists_after_and_including(list_name)
+			list_index = @trello_board.lists.index { | list | list.name == list_name }
+			return [] if list_index.nil?
+			@trello_board.lists.slice(list_index, @trello_board.lists.length)
+		end
+
+		def all_cards_from(lists)
 			return [] if lists.empty?
 			head, *tail = lists
-			return head.cards + all_board_cards(tail)
+			return head.cards + all_cards_from(tail)
 		end
 	end
 end
@@ -83,25 +90,25 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end
 
-	# def test_that_cards_in_earlier_lists_are_not_included
-	# 	list_name = "a list #{SecureRandom.uuid}"
-	# 	card1 = FakeCard.new
-	# 	card2 = FakeCard.new
-	# 	card3 = FakeCard.new
-	# 	mock_successor = MockSuccessor.new
-	# 	board_with_multiple_lists = FakeBoard.new
-	# 	earlier_list = FakeList.new('')
-	# 		.add(card1)
-	# 		.add(card2)
-	# 	referenced_list = FakeList.new(list_name)
-	# 	referenced_list
-	# 		.add(card3)
-	# 	board_with_multiple_lists.add(earlier_list)
-	# 	board_with_multiple_lists.add(referenced_list)
-	# 	producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
-	# 	producer.produce(list_name)
-	# 	expect(mock_successor.pushed_cards).to eql([card3])
-	# end
+	def test_that_cards_in_earlier_lists_are_not_included
+		list_name = "a list #{SecureRandom.uuid}"
+		card1 = FakeCard.new
+		card2 = FakeCard.new
+		card3 = FakeCard.new
+		mock_successor = MockSuccessor.new
+		board_with_multiple_lists = FakeBoard.new
+		earlier_list = FakeList.new('earlier')
+			.add(card1)
+			.add(card2)
+		referenced_list = FakeList.new(list_name)
+		referenced_list
+			.add(card3)
+		board_with_multiple_lists.add(earlier_list)
+		board_with_multiple_lists.add(referenced_list)
+		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
+		producer.produce(list_name)
+		expect(mock_successor.pushed_cards).to eql([card3])
+	end
 end
 
 class FakeCard
