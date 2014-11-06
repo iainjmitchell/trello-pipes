@@ -94,6 +94,19 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 		EnteredListAfterDateFilter.new(mock_successor, today, list_name).push(cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
+
+	def test_one_card_that_entered_list_on_date
+		mock_successor = MockSuccessor.new
+		list_name = "a list #{rand(1..4)}"
+		today = DateTime.now
+		card_entered_after = FakeCardBuilder.create
+			.moved_to(list_name)
+			.today
+			.build
+		cards = [card_entered_after]
+		EnteredListAfterDateFilter.new(mock_successor, today, list_name).push(cards)
+		expect(mock_successor.pushed_cards).to eql(cards)
+	end
 end
 
 class MockSuccessor 
