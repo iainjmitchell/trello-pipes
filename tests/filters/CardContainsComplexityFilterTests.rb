@@ -2,18 +2,22 @@ require 'test/unit'
 require 'rspec-expectations'
 require 'securerandom'
 
-class CardContainsComplexityFilter
-	def initialize(successor)
-		@successor = successor
-	end
+module TrelloPipes
+	class CardContainsComplexityFilter
+		def initialize(successor)
+			@successor = successor
+		end
 
-	def push(cards)
-		@successor.push(cards)
+		def push(cards)
+			@successor.push(cards)
+		end
 	end
 end
 
 
 class CardContainsComplexityFilterTests < Test::Unit::TestCase
+	include TrelloPipes
+
 	def test_no_cards_in_no_cards_out
 		mock_successor = MockSuccessor.new
 		no_cards = []
