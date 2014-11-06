@@ -1,7 +1,7 @@
 require 'test/unit'
 require 'rspec-expectations'
 require 'securerandom'
-require_relative '../lib/producers/CardsAfterAndIncludingListProducer'
+require_relative '../../lib/producers/CardsAfterAndIncludingListProducer'
 
 class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 	include TrelloPipes
