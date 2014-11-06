@@ -17,9 +17,9 @@ module TrelloPipes
 
 		private
 		def get_lists_after_and_including(list_name)
-			list_index = @trello_board.lists.index { | list | list.name == list_name }
+			list_index = @trello_board.lists.index { | list | list.name.match(list_name) }
 			return [] if list_index.nil?
-			@trello_board.lists.slice(list_index, @trello_board.lists.length)
+			@trello_board.lists.slice(list_index, @trello_board.lists.size)
 		end
 
 		def all_cards_from(lists)
@@ -108,6 +108,24 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards).to eql([card3])
+	end
+
+	def test_list_with_name_that_includes_referenced_name
+		referenced_list_name = "a list #{SecureRandom.uuid}"
+		card1 = FakeCard.new
+		card2 = FakeCard.new
+		card3 = FakeCard.new
+		mock_successor = MockSuccessor.new
+		board_with_list = FakeBoard.new
+		list_with_multiple_cards = FakeList.new("(1) #{referenced_list_name}")
+		list_with_multiple_cards
+			.add(card1)
+			.add(card2)
+			.add(card3)
+		board_with_list.add(list_with_multiple_cards)
+		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_list)
+		producer.produce(referenced_list_name)
+		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end
 end
 
