@@ -13,19 +13,45 @@ module TrelloPipes
 
 		def push(cards)
 			matching_cards = cards.select do | card |
-				movement_action = find_movement_action(@list_name, card)
-				return false if movement_action.nil?
-				movement_action.date > @date
+				entered_list_before_date(@list_name, card.actions)
 			end 
 			@successor.push(matching_cards)
 		end
 
 		private 
-		MOVE_INTO_LIST_ACTION = 'updateCard'
+		def entered_list_before_date(list_name, actions)
+			return false if actions.empty?
+			head, *tail = actions
+			action = MovementActionFactory.create(head)
+			(action.for_list?(list_name) && action.after_date(@date)) || entered_list_before_date(list_name, tail)
+		end
+	end
 
-		def find_movement_action(list_name, card)
-			card.actions.find do | action | 
-				action.type == MOVE_INTO_LIST_ACTION && action.data && action.data['listAfter'] && action.data['listAfter']['name'].include?(list_name) 
+	class MovementActionFactory
+		MOVE_INTO_LIST_ACTION = 'updateCard'
+		
+		def self.create(action)
+			return MovementAction.new(action) if (action.type == MOVE_INTO_LIST_ACTION && action.data && action.data['listAfter'])
+			return NullMovementAction.new
+		end
+
+		class MovementAction
+			def initialize(action)
+				@action = action
+			end
+
+			def for_list?(list_name)
+				@action.data['listAfter']['name'].include?(list_name) 
+			end
+
+			def after_date(date)
+				@action.date > date
+			end
+		end
+
+		class NullMovementAction
+			def for_list?(list_name)
+				false
 			end
 		end
 	end
