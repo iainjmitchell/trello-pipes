@@ -5,25 +5,60 @@ require 'time'
 
 module TrelloPipes
 	class EnteredListAfterDateFilter
-		def initialize(successor, date, list_name)
+		def initialize(successor, date, list_name, trello_board)
 			@successor = successor
 			@list_name = list_name
 			@date = Time.parse(date.to_s)
+			@subsequent_list_names = 
+				SubsequentListNameRepository.new(trello_board, list_name).get
 		end
 
 		def push(cards)
 			matching_cards = cards.select do | card |
-				entered_list_before_date(@list_name, card.actions)
+				bob(@list_name, card, @subsequent_list_names)
 			end 
 			@successor.push(matching_cards)
 		end
 
 		private 
-		def entered_list_before_date(list_name, actions)
+		def bob(list_name, card, next_lists)
+			if (has_entered_list?(list_name, card))
+				return entered_list_after_date(list_name, card.actions)
+			else
+				return false if next_lists.empty?
+				head, *tail = next_lists
+				bob(head, card, tail)
+			end
+		end 
+
+		MOVE_INTO_LIST_ACTION = 'updateCard'
+		def has_entered_list?(list_name, card)
+			entered_list = false
+			card.actions.each do | action |
+				if (action.type == MOVE_INTO_LIST_ACTION && action.data && action.data['listAfter'] && action.data['listAfter']['name'].include?(list_name))
+					entered_list = true
+				end
+			end
+			entered_list
+		end
+
+		def entered_list_after_date(list_name, actions)
 			return false if actions.empty?
 			head, *tail = actions
 			action = MovementActionFactory.create(head)
-			(action.for_list?(list_name) && action.after_date(@date)) || entered_list_before_date(list_name, tail)
+			(action.for_list?(list_name) && action.after_date(@date)) || entered_list_after_date(list_name, tail)
+		end
+	end
+
+	class SubsequentListNameRepository
+		def initialize(trello_board, list_name)
+			list_names = trello_board.lists.map {|list| list.name}
+			list_index = list_names.index {|name| name.match(list_name)}
+			@subsequent_list_names = list_names.slice(list_index+1, list_names.size-1)
+		end
+
+		def get()
+			@subsequent_list_names
 		end
 	end
 
@@ -65,7 +100,9 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 		list_name = "a list #{rand(1..4)}"
 		no_cards = []
 		date = DateTime.now
-		EnteredListAfterDateFilter.new(mock_successor, date, list_name).push(no_cards)
+		board = FakeBoard.new().add(FakeList.new(list_name))
+		EnteredListAfterDateFilter.new(mock_successor, date, list_name, board)
+			.push(no_cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
 
@@ -78,7 +115,9 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.today
 			.build
 		cards = [card_entered_after]
-		EnteredListAfterDateFilter.new(mock_successor, yesterday, list_name).push(cards)
+		board = FakeBoard.new().add(FakeList.new(list_name))
+		EnteredListAfterDateFilter.new(mock_successor, yesterday, list_name, board)
+			.push(cards)
 		expect(mock_successor.pushed_cards).to eql([card_entered_after])
 	end
 
@@ -91,7 +130,9 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.days_ago(1)
 			.build
 		cards = [card_entered_after]
-		EnteredListAfterDateFilter.new(mock_successor, today, list_name).push(cards)
+		board = FakeBoard.new().add(FakeList.new(list_name))
+		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+			.push(cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
 
@@ -104,7 +145,27 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.today
 			.build
 		cards = [card_entered_after]
-		EnteredListAfterDateFilter.new(mock_successor, today, list_name).push(cards)
+		board = FakeBoard.new().add(FakeList.new(list_name))
+		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+			.push(cards)
+		expect(mock_successor.pushed_cards).to eql(cards)
+	end
+
+	def test_one_card_that_jumped_list_and_entered_next_before_date
+		mock_successor = MockSuccessor.new
+		list_name = "the list #{rand(1..5)}"
+		next_list_name = "a list #{rand(1..4)}"
+		today = DateTime.now
+		card_entered_after = FakeCardBuilder.create
+			.moved_to(next_list_name)
+			.today
+			.build
+		cards = [card_entered_after]
+		board = FakeBoard.new()
+			.add(FakeList.new(list_name))
+			.add(FakeList.new(next_list_name))
+		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+			.push(cards)
 		expect(mock_successor.pushed_cards).to eql(cards)
 	end
 end
@@ -114,6 +175,27 @@ class MockSuccessor
 
 	def push(cards)
 		@pushed_cards = cards
+	end
+end
+
+class FakeBoard
+	attr_reader :lists 
+
+	def initialize 
+		@lists = []
+	end
+
+	def add(list)
+		@lists.push(list)
+		self
+	end
+end
+
+class FakeList
+	attr_reader :name
+
+	def initialize(name)
+		@name = name
 	end
 end
 
