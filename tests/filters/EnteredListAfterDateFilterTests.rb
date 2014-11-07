@@ -15,38 +15,43 @@ module TrelloPipes
 
 		def push(cards)
 			matching_cards = cards.select do | card |
-				bob(@list_name, card, @subsequent_list_names)
+				movement_action = find_movement_action(card.actions, @list_name, @subsequent_list_names)
+				movement_action.date > @date
 			end 
 			@successor.push(matching_cards)
 		end
 
 		private 
-		def bob(list_name, card, next_lists)
-			if (has_entered_list?(list_name, card))
-				return entered_list_after_date(list_name, card.actions)
-			else
-				return false if next_lists.empty?
-				head, *tail = next_lists
-				bob(head, card, tail)
+		def find_movement_action(actions, list_name, subsequent_list_names)
+			specification = MovementIntoListSpecification.new(list_name)
+			movement_action = actions.find do | action |
+				specification.is_satisified_by(action)
 			end
-		end 
+			return movement_action unless movement_action.nil?
+			return NullMovementAction.new if subsequent_list_names.empty?
+			head, *tail = subsequent_list_names
+			return find_movement_action(actions, head, tail)
+		end
+	end
 
+	class MovementIntoListSpecification
 		MOVE_INTO_LIST_ACTION = 'updateCard'
-		def has_entered_list?(list_name, card)
-			entered_list = false
-			card.actions.each do | action |
-				if (action.type == MOVE_INTO_LIST_ACTION && action.data && action.data['listAfter'] && action.data['listAfter']['name'].include?(list_name))
-					entered_list = true
-				end
-			end
-			entered_list
+		def initialize(list_name)
+			@list_name = list_name
 		end
 
-		def entered_list_after_date(list_name, actions)
-			return false if actions.empty?
-			head, *tail = actions
-			action = MovementActionFactory.create(head)
-			(action.for_list?(list_name) && action.after_date(@date)) || entered_list_after_date(list_name, tail)
+		def is_satisified_by(action)
+			(action.type == MOVE_INTO_LIST_ACTION && 
+					action.data && action.data['listAfter'] && 
+						action.data['listAfter']['name'].include?(@list_name))
+		end
+	end
+
+	class NullMovementAction
+		attr_reader :date
+
+		def initialize
+			date = Time.at(0)
 		end
 	end
 
@@ -59,35 +64,6 @@ module TrelloPipes
 
 		def get()
 			@subsequent_list_names
-		end
-	end
-
-	class MovementActionFactory
-		MOVE_INTO_LIST_ACTION = 'updateCard'
-		
-		def self.create(action)
-			return MovementAction.new(action) if (action.type == MOVE_INTO_LIST_ACTION && action.data && action.data['listAfter'])
-			return NullMovementAction.new
-		end
-
-		class MovementAction
-			def initialize(action)
-				@action = action
-			end
-
-			def for_list?(list_name)
-				@action.data['listAfter']['name'].include?(list_name) 
-			end
-
-			def after_date(date)
-				@action.date > date
-			end
-		end
-
-		class NullMovementAction
-			def for_list?(list_name)
-				false
-			end
 		end
 	end
 end
@@ -145,7 +121,7 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.today
 			.build
 		cards = [card_entered_after]
-		board = FakeBoard.new().add(FakeList.new(list_name))
+		board = FakeBoard.new().add(FakeList.new("#{list_name} (1)"))
 		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
 			.push(cards)
 		expect(mock_successor.pushed_cards).to eql(cards)
