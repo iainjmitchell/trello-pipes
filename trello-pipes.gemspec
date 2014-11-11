@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name        = 'trello-pipes'
-  spec.version     = '1.0.2'
+  spec.version     = '1.0.3'
   spec.summary     = "Pipes and filters for trello board data"
   spec.authors     = ["iainjmitchell"]
   spec.email       = 'iainjmitchell@gmail.com'
