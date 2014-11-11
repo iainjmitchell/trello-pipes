@@ -6,10 +6,18 @@ module TrelloPipes
 	class CardNameContainsFilter
 		def initialize(parameters)
 			@successor = parameters[:successor]
+			@search_term = parameters[:value]
 		end
 
 		def push(cards)
-			@successor.push(cards)
+			puts "search: #{@search_term} value: #{cards[0].name}" if cards.size > 0
+			if (cards.size > 0 && cards[0].name.include?(@search_term))
+					@successor.push(cards)
+
+			else
+
+				@successor.push([])
+			end
 		end
 	end
 end
@@ -31,13 +39,25 @@ class CardNameContainsFilterTests < Test::Unit::TestCase
 	def test_one_card_with_text_in_card_name
 		mock_successor = MockSuccessor.new
 		search_value = "terry#{rand(1..9)}"
-		card_name = "asd #{search_value}"
+		card_name = "should include #{search_value}"
 		one_card = [FakeCard.new(card_name)]
 		CardNameContainsFilter.new(
 				successor: mock_successor,
 				value: search_value)
 			.push(one_card)
 		expect(mock_successor.pushed_cards).to eql(one_card)
+	end
+
+	def test_one_card_without_text_in_card_name
+		mock_successor = MockSuccessor.new
+		search_value = "terry#{rand(1..9)}"
+		card_name = "should not include"
+		one_card = [FakeCard.new(card_name)]
+		CardNameContainsFilter.new(
+				successor: mock_successor,
+				value: search_value)
+			.push(one_card)
+		expect(mock_successor.pushed_cards).to eql([])
 	end
 end
 
