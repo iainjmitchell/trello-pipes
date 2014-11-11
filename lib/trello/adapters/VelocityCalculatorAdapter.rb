@@ -1,7 +1,7 @@
 module TrelloPipes
 	class VelocityCalculatorAdapter
-		def initialize(successor)
-			@successor = successor
+		def initialize(parameters)
+			@successor = parameters[:successor]
 		end
 
 		def push(cards)

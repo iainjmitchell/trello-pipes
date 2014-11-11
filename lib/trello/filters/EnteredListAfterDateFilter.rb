@@ -2,12 +2,12 @@ require 'time'
 
 module TrelloPipes
 	class EnteredListAfterDateFilter
-		def initialize(successor, date, list_name, trello_board)
-			@successor = successor
-			@list_name = list_name
-			@date = Time.parse(date.to_s)
+		def initialize(parameters)
+			@successor = parameters[:successor]
+			@list_name = parameters[:list]
+			@date = Time.parse(parameters[:date].to_s)
 			@subsequent_list_names = 
-				SubsequentListNameRepository.new(trello_board, list_name).get
+				SubsequentListNameRepository.new(parameters[:trello_board], @list_name).get
 		end
 
 		def push(cards)

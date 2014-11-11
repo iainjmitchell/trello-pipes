@@ -1,8 +1,8 @@
 module TrelloPipes
 	class CardsAfterAndIncludingListProducer
-		def initialize(successor, trello_board)
-			@successor = successor
-			@trello_board = trello_board
+		def initialize(parameters)
+			@successor = parameters[:successor]
+			@trello_board = parameters[:trello_board]
 		end
 
 		def produce(list_name)

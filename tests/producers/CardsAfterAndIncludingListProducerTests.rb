@@ -10,7 +10,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 		list_name = "a list #{SecureRandom.uuid}"
 		mock_successor = MockSuccessor.new
 		board_with_no_lists = FakeBoard.new
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_no_lists)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_no_lists)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards.length).to eql(0)
 	end
@@ -20,7 +22,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 		mock_successor = MockSuccessor.new
 		board_with_list = FakeBoard.new
 		board_with_list.add(FakeList.new(list_name))
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_list)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_list)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards.length).to eql(0)
 	end
@@ -38,7 +42,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 			.add(card2)
 			.add(card3)
 		board_with_list.add(list_with_multiple_cards)
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_list)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_list)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end
@@ -58,7 +64,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 			.add(card3)
 		board_with_multiple_lists.add(referenced_list)
 		board_with_multiple_lists.add(list_after)
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_multiple_lists)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end
@@ -78,7 +86,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 			.add(card3)
 		board_with_multiple_lists.add(earlier_list)
 		board_with_multiple_lists.add(referenced_list)
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_multiple_lists)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_multiple_lists)
 		producer.produce(list_name)
 		expect(mock_successor.pushed_cards).to eql([card3])
 	end
@@ -96,7 +106,9 @@ class CardsAfterAndIncludingListProducerTests < Test::Unit::TestCase
 			.add(card2)
 			.add(card3)
 		board_with_list.add(list_with_multiple_cards)
-		producer = CardsAfterAndIncludingListProducer.new(mock_successor, board_with_list)
+		producer = CardsAfterAndIncludingListProducer.new(
+			successor: mock_successor, 
+			trello_board: board_with_list)
 		producer.produce(referenced_list_name)
 		expect(mock_successor.pushed_cards).to eql([card1, card2, card3])
 	end

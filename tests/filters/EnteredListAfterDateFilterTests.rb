@@ -12,7 +12,11 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 		no_cards = []
 		date = DateTime.now
 		board = FakeBoard.new().add(FakeList.new(list_name))
-		EnteredListAfterDateFilter.new(mock_successor, date, list_name, board)
+		EnteredListAfterDateFilter.new(
+				successor: mock_successor, 
+				date: date, 
+				list: list_name, 
+				trello_board: board)
 			.push(no_cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
@@ -27,7 +31,11 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.build
 		cards = [card_entered_after]
 		board = FakeBoard.new().add(FakeList.new(list_name))
-		EnteredListAfterDateFilter.new(mock_successor, yesterday, list_name, board)
+		EnteredListAfterDateFilter.new(
+				successor: mock_successor, 
+				date: yesterday, 
+				list: list_name, 
+				trello_board: board)
 			.push(cards)
 		expect(mock_successor.pushed_cards).to eql([card_entered_after])
 	end
@@ -42,7 +50,11 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.build
 		cards = [card_entered_after]
 		board = FakeBoard.new().add(FakeList.new(list_name))
-		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+		EnteredListAfterDateFilter.new(
+				successor: mock_successor, 
+				date: today, 
+				list: list_name, 
+				trello_board: board)
 			.push(cards)
 		expect(mock_successor.pushed_cards).to eql([])
 	end
@@ -57,7 +69,11 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 			.build
 		cards = [card_entered_after]
 		board = FakeBoard.new().add(FakeList.new("#{list_name} (1)"))
-		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+		EnteredListAfterDateFilter.new(
+				successor: mock_successor, 
+				date: today, 
+				list: list_name, 
+				trello_board: board)
 			.push(cards)
 		expect(mock_successor.pushed_cards).to eql(cards)
 	end
@@ -75,7 +91,11 @@ class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 		board = FakeBoard.new()
 			.add(FakeList.new(list_name))
 			.add(FakeList.new(next_list_name))
-		EnteredListAfterDateFilter.new(mock_successor, today, list_name, board)
+		EnteredListAfterDateFilter.new(
+				successor: mock_successor, 
+				date: today, 
+				list: list_name, 
+				trello_board: board)
 			.push(cards)
 		expect(mock_successor.pushed_cards).to eql(cards)
 	end

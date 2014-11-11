@@ -8,7 +8,8 @@ class VelocityCalculatorAdapterTests < Test::Unit::TestCase
 	def test_no_cards_outputs_zero
 		mock_display = MockDisplay.new
 		no_cards = []
-		VelocityCalculatorAdapter.new(mock_display).push(no_cards)
+		VelocityCalculatorAdapter.new(successor: mock_display)
+			.push(no_cards)
 		expect(mock_display.velocity).to eql(0)
 	end
 
@@ -16,7 +17,8 @@ class VelocityCalculatorAdapterTests < Test::Unit::TestCase
 		velocity = rand(1..13)
 		mock_display = MockDisplay.new
 		one_card = [FakeCard.new("(#{velocity}) bob")]
-		VelocityCalculatorAdapter.new(mock_display).push(one_card)
+		VelocityCalculatorAdapter.new(successor: mock_display)
+			.push(one_card)
 		expect(mock_display.velocity).to eql(velocity)
 	end
 
@@ -30,7 +32,8 @@ class VelocityCalculatorAdapterTests < Test::Unit::TestCase
 			FakeCard.new("(#{velocity2}) bob2"),
 			FakeCard.new("(#{velocity3}) bob3")
 		]
-		VelocityCalculatorAdapter.new(mock_display).push(multiple_cards)
+		VelocityCalculatorAdapter.new(successor: mock_display)
+			.push(multiple_cards)
 		expect(mock_display.velocity).to eql(velocity1 + velocity2 + velocity3)
 	end
 
@@ -41,7 +44,8 @@ class VelocityCalculatorAdapterTests < Test::Unit::TestCase
 			FakeCard.new("bob1 (#{velocity})"),
 			FakeCard.new("bob2")
 		]
-		VelocityCalculatorAdapter.new(mock_display).push(one_card_with_velocity_and_one_without)
+		VelocityCalculatorAdapter.new(successor: mock_display)
+			.push(one_card_with_velocity_and_one_without)
 		expect(mock_display.velocity).to eql(velocity)
 	end
 end
