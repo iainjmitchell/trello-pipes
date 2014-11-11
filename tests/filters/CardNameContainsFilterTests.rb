@@ -9,7 +9,7 @@ module TrelloPipes
 		end
 
 		def push(cards)
-			@successor.push([])
+			@successor.push(cards)
 		end
 	end
 end
@@ -26,6 +26,18 @@ class CardNameContainsFilterTests < Test::Unit::TestCase
 				value: 'bob')
 			.push(no_cards)
 		expect(mock_successor.pushed_cards.size).to eql(0)
+	end
+
+	def test_one_card_with_text_in_card_name
+		mock_successor = MockSuccessor.new
+		search_value = "terry#{rand(1..9)}"
+		card_name = "asd #{search_value}"
+		one_card = [FakeCard.new(card_name)]
+		CardNameContainsFilter.new(
+				successor: mock_successor,
+				value: search_value)
+			.push(one_card)
+		expect(mock_successor.pushed_cards).to eql(one_card)
 	end
 end
 
