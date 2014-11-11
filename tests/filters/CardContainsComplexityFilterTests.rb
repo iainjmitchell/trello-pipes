@@ -1,7 +1,7 @@
 require 'test/unit'
 require 'rspec-expectations'
 require 'securerandom'
-require_relative '../../lib/filters/CardContainsComplexityFilter'
+require_relative '../../lib/trello/filters/CardContainsComplexityFilter'
 
 class CardContainsComplexityFilterTests < Test::Unit::TestCase
 	include TrelloPipes

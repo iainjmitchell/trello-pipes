@@ -1,7 +1,7 @@
 require 'test/unit'
 require 'rspec-expectations'
 require 'date'
-require_relative '../../lib/filters/EnteredListAfterDateFilter'
+require_relative '../../lib/trello/filters/EnteredListAfterDateFilter'
 
 class EnteredListAfterDateFilterTests < Test::Unit::TestCase
 	include TrelloPipes

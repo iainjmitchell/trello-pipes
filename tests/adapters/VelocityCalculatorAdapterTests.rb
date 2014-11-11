@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'rspec-expectations'
-require_relative '../../lib/adapters/VelocityCalculatorAdapter'
+require_relative '../../lib/trello/adapters/VelocityCalculatorAdapter'
 
 class VelocityCalculatorAdapterTests < Test::Unit::TestCase
 	include TrelloPipes
